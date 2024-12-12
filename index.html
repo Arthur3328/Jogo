@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo</title> <!-- Mudança aqui -->
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #000;
+            color: #fff;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .game-canvas {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            background-color: #000;
+            border: 1px solid #fff;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .player {
+            width: 30px;
+            height: 30px;
+            background-color: red;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .apple {
+            width: 20px;
+            height: 20px;
+            background-color: green;
+            position: absolute;
+        }
+
+        .pixel {
+            width: 5px;
+            height: 5px;
+            background-color: yellow;
+            position: absolute;
+        }
+
+        .keys {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .keys .arr {
+            background-color: #444;
+            color: #fff;
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            text-align: center;
+            width: 70px;
+            margin-bottom: 10px;
+        }
+
+        .keys .arr:hover {
+            background-color: #666;
+        }
+
+        #score {
+            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        footer a {
+            color: #00f;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsiveness for smaller screens */
+        @media (max-width: 600px) {
+            .game-canvas {
+                width: 250px;
+                height: 250px;
+            }
+
+            .keys .arr {
+                width: 50px;
+                padding: 8px;
+            }
+
+            #score {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .game-canvas {
+                width: 200px;
+                height: 200px;
+            }
+
+            .keys .arr {
+                width: 40px;
+                padding: 6px;
+            }
+
+            #score {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="score">Score: 0</div>
+        <div class="game-canvas" id="canvas">
+            <div class="player" id="player"></div>
+            <div class="apple" id="apple"></div>
+        </div>
+    </div>
+
+    <div class="keys">
+        <div class="arr" onclick="movePlayer('up')">⬆️ Up</div>
+        <div class="arr" onclick="movePlayer('down')">⬇️ Down</div>
+        <div class="arr" onclick="movePlayer('left')">⬅️ Left</div>
+        <div class="arr" onclick="movePlayer('right')">➡️ Right</div>
+    </div>
+
+    <script>
+        const player = document.getElementById('player');
+        const apple = document.getElementById('apple');
+        const canvas = document.getElementById('canvas');
+        const scoreDisplay = document.getElementById('score');
+
+        let playerPos = { top: 50, left: 50 };
+        let applePos = { top: Math.random() * 90, left: Math.random() * 90 };
+        let score = 0;
+
+        function movePlayer(direction) {
+            const step = 5;
+            switch (direction) {
+                case 'up':
+                    playerPos.top = Math.max(0, playerPos.top - step);
+                    break;
+                case 'down':
+                    playerPos.top = Math.min(100, playerPos.top + step);
+                    break;
+                case 'left':
+                    playerPos.left = Math.max(0, playerPos.left - step);
+                    break;
+                case 'right':
+                    playerPos.left = Math.min(100, playerPos.left + step);
+                    break;
+            }
+            updatePlayerPosition();
+            checkCollision();
+        }
+
+        function updatePlayerPosition() {
+            player.style.top = playerPos.top + '%';
+            player.style.left = playerPos.left + '%';
+        }
+
+        function placeApple() {
+            applePos = { top: Math.random() * 90, left: Math.random() * 90 };
+            apple.style.top = applePos.top + '%';
+            apple.style.left = applePos.left + '%';
+        }
+
+        function createPixel() {
+            const pixel = document.createElement('div');
+            pixel.className = 'pixel';
+            pixel.style.top = applePos.top + '%';
+            pixel.style.left = applePos.left + '%';
+            canvas.appendChild(pixel);
+
+            // Remove the pixel after a short delay
+            setTimeout(() => {
+                pixel.remove();
+            }, 2000);
+        }
+
+        function checkCollision() {
+            const playerRect = player.getBoundingClientRect();
+            const appleRect = apple.getBoundingClientRect();
+
+            if (
+                playerRect.left < appleRect.right &&
+                playerRect.right > appleRect.left &&
+                playerRect.top < appleRect.bottom &&
+                playerRect.bottom > appleRect.top
+            ) {
+                score++;
+                scoreDisplay.textContent = `Score: ${score}`;
+                createPixel();
+                placeApple();
+            }
+        }
+
+        // Keyboard control
+        document.addEventListener('keydown', (e) => {
+            switch (e.key) {
+                case 'ArrowUp':
+                    movePlayer('up');
+                    break;
+                case 'ArrowDown':
+                    movePlayer('down');
+                    break;
+                case 'ArrowLeft':
+                    movePlayer('left');
+                    break;
+                case 'ArrowRight':
+                    movePlayer('right');
+                    break;
+            }
+        });
+
+        // Initialize apple position
+        placeApple();
+    </script>
+
+    <footer>
+        &copy; 2024 Jogo.
+         <a href="terms.html">Termos de Serviço</a> 
+          <a href="privacy.html">Política de Privacidade</a>
+    </footer>
+</body>
+</html>
